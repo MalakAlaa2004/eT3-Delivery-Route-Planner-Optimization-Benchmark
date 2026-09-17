@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eT3 Delivery Route Planner | Intelligent Grouping & Optimization</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">📦</div>
+      <div class="brand-title">
+        <h1>eT3 Delivery Route Planner</h1>
+        <span>Intelligent Package Grouping & Metaheuristic Route Optimizer</span>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-cyan">Max 10 kg / Trip</span>
+      <span class="badge">Priority-Ordered</span>
+      <span class="badge">Spatial Cohesion</span>
+    </div>
+  </header>
+
+  <main class="app-container">
+    <!-- Control Bar -->
+    <section class="control-panel">
+      <div class="control-group">
+        <label class="control-label" for="datasetSelect">Dataset:</label>
+        <select id="datasetSelect">
+          <option value="sample">Official Sample (5 pkgs)</option>
+          <option value="edge_cases">Edge Cases & Overweight</option>
+          <option value="cairo_large">Cairo Benchmark (50 pkgs)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="algoSelect">Algorithm:</label>
+        <select id="algoSelect">
+          <option value="greedy">Greedy Heuristic (Baseline)</option>
+          <option value="sa">Simulated Annealing (SA)</option>
+          <option value="ga">Genetic Algorithm (GA)</option>
+          <option value="compare">Comparative Benchmark</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="searchInput">Search:</label>
+        <input type="text" id="searchInput" placeholder="Filter Area, ID, Priority...">
+      </div>
+
+      <div class="control-group">
+        <button id="solveBtn" class="btn">
+          <span>⚡ Run Optimization</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Warning / Overweight Banner -->
+    <div id="warningBanner" class="warning-banner">
+      <strong>⚠️ Warning:</strong> <span id="warningMessage">Some packages exceeded 10 kg and were isolated into dedicated heavy transport handling.</span>
+    </div>
+
+    <!-- Live KPI Metrics Row -->
+    <section class="metrics-row">
+      <div class="metric-card">
+        <span class="metric-title">Total Trips</span>
+        <span id="metricTrips" class="metric-value">0</span>
+        <span class="metric-subtitle">Dispatched Vehicles</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-title">Fleet Utilization</span>
+        <span id="metricUtilization" class="metric-value">0%</span>
+        <span class="metric-subtitle">Average Capacity Packed</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-title">Spatial Purity</span>
+        <span id="metricPurity" class="metric-value">0%</span>
+        <span class="metric-subtitle">Single-Area Trips Ratio</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-title">Compute Latency</span>
+        <span id="metricTime" class="metric-value">0.0 ms</span>
+        <span id="metricAlgoName" class="metric-subtitle">Greedy Heuristic</span>
+      </div>
+    </section>
+
+    <!-- Benchmark Comparison Table (Visible in Compare Mode) -->
+    <section id="benchmarkSection" class="benchmark-container">
+      <h3 style="font-size: 1rem; color: var(--primary); margin-bottom: 0.5rem;">📊 Multi-Algorithm Benchmark Comparison</h3>
+      <table class="benchmark-table">
+        <thead>
+          <tr>
+            <th>Algorithm</th>
+            <th>Trips Count</th>
+            <th>Capacity Utilization</th>
+            <th>Area Purity</th>
+            <th>Runtime</th>
+            <th>Unassigned / Overweight</th>
+          </tr>
+        </thead>
+        <tbody id="benchmarkTableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Main Visual Split Screen -->
+    <section class="main-view">
+      <!-- Left: Interactive Spatial Points & Cluster Map -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">🗺️ Geographic Area Hubs & Package Clustering</h2>
+          <span class="badge" id="pointCountBadge">0 Deliveries</span>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="mapCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Right: Scheduled Trip Containers -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">🚚 Dispatched Trip Cargo Containers</h2>
+          <span class="badge badge-cyan" id="tripCountBadge">0 Trips</span>
+        </div>
+        <div class="trips-grid" id="tripsGrid">
+          <!-- Populated dynamically with trip cards -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    eT3 Internship Technical Challenge 2026 &bull; Delivery Route Planner with Metaheuristic Optimization Extension
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
