@@ -20,14 +20,22 @@ class Delivery:
         self.id = int(self.id)
         self.area = str(self.area).strip()
         self.priority = int(self.priority)
-        self.weight = round(float(self.weight), 3)
+        try:
+            val = float(self.weight)
+            self.weight = round(val, 3) if not math.isnan(val) else float('nan')
+        except (ValueError, TypeError):
+            self.weight = float('nan')
 
     def is_overweight(self, max_capacity: float = 10.0) -> bool:
         """Returns True if the package exceeds the vehicle's capacity threshold."""
+        if math.isnan(self.weight):
+            return False
         return self.weight > max_capacity + 1e-6
 
     def is_valid(self) -> Tuple[bool, Optional[str]]:
         """Validates delivery fields."""
+        if math.isnan(self.weight):
+            return False, "Package weight is NaN (Not a Number) or missing"
         if self.weight <= 0:
             return False, f"Package weight must be positive, got {self.weight} kg"
         if self.priority <= 0:

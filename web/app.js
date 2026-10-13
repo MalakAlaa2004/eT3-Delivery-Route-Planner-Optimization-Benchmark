@@ -32,7 +32,9 @@ const EMBEDDED_DATASETS = {
     { id: 106, area: "Heliopolis", priority: 2, weight: 0.5 },
     { id: 107, area: "Heliopolis", priority: 2, weight: 3.0 },
     { id: 108, area: "Dokki", priority: 3, weight: 8.0 },
-    { id: 109, area: "Dokki", priority: 3, weight: 2.0 }
+    { id: 109, area: "Dokki", priority: 3, weight: 2.0 },
+    { id: 101, area: "Nasr City", priority: 1, weight: 3.0 },
+    { id: 110, area: "Maadi", priority: 2, weight: NaN }
   ],
   cairo_large: [
     { id: 1, area: "Nasr City", priority: 1, weight: 3.2 },
@@ -138,10 +140,16 @@ function solveGreedy(deliveries, maxCapacity = 10.0) {
   const valid = [];
   const unassigned = [];
 
+  const seenIds = new Set();
   for (const d of deliveries) {
-    if (d.weight > maxCapacity) {
+    if (d.weight === null || d.weight === undefined || isNaN(d.weight)) {
+      unassigned.push({ delivery: d, reason: `Package weight is NaN (Not a Number) or missing` });
+    } else if (seenIds.has(d.id)) {
+      unassigned.push({ delivery: d, reason: `Duplicate delivery ID #${d.id} cleaned and skipped` });
+    } else if (d.weight > maxCapacity) {
       unassigned.push({ delivery: d, reason: `Weight (${d.weight} kg) exceeds vehicle max capacity (10.0 kg)` });
     } else {
+      seenIds.add(d.id);
       valid.push(d);
     }
   }
@@ -204,10 +212,21 @@ function solveGreedy(deliveries, maxCapacity = 10.0) {
 // Client-Side Simulated Annealing Solver
 function solveSimulatedAnnealing(deliveries, maxCapacity = 10.0) {
   const startTime = performance.now();
-  const valid = deliveries.filter(d => d.weight <= maxCapacity);
-  const unassigned = deliveries
-    .filter(d => d.weight > maxCapacity)
-    .map(d => ({ delivery: d, reason: `Weight (${d.weight} kg) exceeds vehicle max capacity (10.0 kg)` }));
+  const valid = [];
+  const unassigned = [];
+  const seenIds = new Set();
+  for (const d of deliveries) {
+    if (d.weight === null || d.weight === undefined || isNaN(d.weight)) {
+      unassigned.push({ delivery: d, reason: `Package weight is NaN (Not a Number) or missing` });
+    } else if (seenIds.has(d.id)) {
+      unassigned.push({ delivery: d, reason: `Duplicate delivery ID #${d.id} cleaned and skipped` });
+    } else if (d.weight > maxCapacity) {
+      unassigned.push({ delivery: d, reason: `Weight (${d.weight} kg) exceeds vehicle max capacity (10.0 kg)` });
+    } else {
+      seenIds.add(d.id);
+      valid.push(d);
+    }
+  }
 
   if (valid.length === 0) {
     return { algorithm: "Simulated Annealing", trips: [], unassigned, time_ms: performance.now() - startTime };
@@ -385,9 +404,12 @@ function updateUI(plan) {
   // Update Warnings
   if (plan.unassigned && plan.unassigned.length > 0) {
     warningBanner.classList.add("active");
-    warningMessage.innerHTML = `${plan.unassigned.length} package(s) exceeded the 10.0 kg limit: ` +
-      plan.unassigned.map(u => `<b>#${u.delivery.id} (${u.delivery.weight} kg)</b>`).join(", ") +
-      ` &bull; Flagged for heavy freight vehicle handling.`;
+    const reasonsSummary = plan.unassigned.map(u => {
+      const pkgId = u.delivery ? `#${u.delivery.id}` : "Unknown";
+      const wStr = (u.delivery && !isNaN(u.delivery.weight)) ? `${u.delivery.weight} kg` : "NaN";
+      return `<b>${pkgId} (${wStr})</b>: ${u.reason}`;
+    }).join(" | ");
+    warningMessage.innerHTML = `${plan.unassigned.length} package(s) flagged/cleaned: ${reasonsSummary}`;
   } else {
     warningBanner.classList.remove("active");
   }

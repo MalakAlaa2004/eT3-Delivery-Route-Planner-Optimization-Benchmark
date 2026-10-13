@@ -21,14 +21,18 @@ class BaseSolver(ABC):
         """
         valid: List[Delivery] = []
         unassignable: List[Tuple[Delivery, str]] = []
+        seen_ids = set()
 
         for d in deliveries:
             is_valid, err = d.is_valid()
             if not is_valid:
                 unassignable.append((d, f"Invalid delivery data: {err}"))
+            elif d.id in seen_ids:
+                unassignable.append((d, f"Duplicate delivery ID #{d.id} detected - cleaned and skipped to preserve unique trip integrity"))
             elif d.is_overweight(self.max_capacity):
                 unassignable.append((d, f"Weight ({d.weight} kg) exceeds maximum vehicle capacity ({self.max_capacity} kg)"))
             else:
+                seen_ids.add(d.id)
                 valid.append(d)
 
         return valid, unassignable

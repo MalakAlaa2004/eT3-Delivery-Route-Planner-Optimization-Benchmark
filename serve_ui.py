@@ -7,6 +7,7 @@ import http.server
 import socketserver
 import json
 import os
+import math
 import webbrowser
 import sys
 from urllib.parse import urlparse
@@ -75,7 +76,7 @@ class DeliveryApiHandler(http.server.SimpleHTTPRequestHandler):
                                 "id": d.id,
                                 "area": d.area,
                                 "priority": d.priority,
-                                "weight": d.weight
+                                "weight": 0.0 if math.isnan(d.weight) else d.weight
                             },
                             "reason": reason
                         }

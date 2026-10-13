@@ -1,0 +1,68 @@
+[
+  {
+    "id": 101,
+    "area": "Nasr City",
+    "priority": 1,
+    "package_weight": 6.0
+  },
+  {
+    "id": 102,
+    "area": "Nasr City",
+    "priority": 1,
+    "package_weight": 4.0
+  },
+  {
+    "id": 103,
+    "area": "Nasr City",
+    "priority": 1,
+    "package_weight": 1.5
+  },
+  {
+    "id": 104,
+    "area": "Maadi",
+    "priority": 2,
+    "package_weight": 10.0
+  },
+  {
+    "id": 105,
+    "area": "Zamalek",
+    "priority": 1,
+    "package_weight": 14.5
+  },
+  {
+    "id": 106,
+    "area": "Heliopolis",
+    "priority": 2,
+    "package_weight": 0.5
+  },
+  {
+    "id": 107,
+    "area": "Heliopolis",
+    "priority": 2,
+    "package_weight": 3.0
+  },
+  {
+    "id": 108,
+    "area": "Dokki",
+    "priority": 3,
+    "package_weight": 8.0
+  },
+  {
+    "id": 109,
+    "area": "Dokki",
+    "priority": 3,
+    "package_weight": 2.0
+  },
+  {
+    "id": 101,
+    "area": "Nasr City",
+    "priority": 1,
+    "package_weight": 3.0
+  },
+  {
+    "id": 110,
+    "area": "Maadi",
+    "priority": 2,
+    "package_weight": "NaN"
+  }
+]

@@ -46,15 +46,41 @@ def load_deliveries_from_csv(filepath: str) -> List[Delivery]:
                 f"CSV headers missing required fields. Expected: ID, Area, Priority, Package Weight. Found: {raw_headers}"
             )
 
+        seen_ids = set()
         for row_num, row in enumerate(reader, start=2):
             if not row or all(not cell.strip() for cell in row):
                 continue  # Skip blank lines
             try:
-                d_id = int(row[id_col].strip())
-                area = row[area_col].strip()
-                prio = int(row[prio_col].strip())
-                weight = float(row[weight_col].strip())
-                deliveries.append(Delivery(id=d_id, area=area, priority=prio, weight=weight))
+                raw_id = row[id_col].strip()
+                raw_area = row[area_col].strip()
+                raw_prio = row[prio_col].strip()
+                raw_weight = row[weight_col].strip()
+
+                # Check for NaN / missing / null weight
+                if raw_weight.lower() in ("nan", "null", "none", "", "na"):
+                    print(f"[Warning] Delivery ID {raw_id} (row {row_num}) has NaN/missing package weight. Skipping record.")
+                    continue
+
+                try:
+                    weight = float(raw_weight)
+                except ValueError:
+                    print(f"[Warning] Delivery ID {raw_id} (row {row_num}) has non-numeric weight '{raw_weight}'. Skipping record.")
+                    continue
+
+                import math
+                if math.isnan(weight):
+                    print(f"[Warning] Delivery ID {raw_id} (row {row_num}) has NaN package weight. Skipping record.")
+                    continue
+
+                d_id = int(raw_id)
+                # Check for duplicate ID
+                if d_id in seen_ids:
+                    print(f"[Warning] Duplicate delivery ID #{d_id} detected in row {row_num} (Area: '{raw_area}'). Cleaning and skipping duplicate.")
+                    continue
+
+                prio = int(raw_prio)
+                seen_ids.add(d_id)
+                deliveries.append(Delivery(id=d_id, area=raw_area, priority=prio, weight=weight))
             except (ValueError, IndexError) as err:
                 print(f"[Warning] Skipping malformed row {row_num}: {row} (Error: {err})")
 
@@ -80,15 +106,46 @@ def load_deliveries_from_json(filepath: str) -> List[Delivery]:
         raise ValueError(f"JSON root must be a list of deliveries, got {type(data)}")
 
     deliveries: List[Delivery] = []
+    seen_ids = set()
     for idx, item in enumerate(data):
         if not isinstance(item, dict):
             print(f"[Warning] Skipping invalid delivery entry #{idx}: {item}")
             continue
         try:
-            d_id = int(item.get("id") or item.get("ID") or idx + 1)
+            raw_id = item.get("id") or item.get("ID") or idx + 1
             area = str(item.get("area") or item.get("Area", "")).strip()
             prio = int(item.get("priority") or item.get("Priority", 2))
-            weight = float(item.get("package_weight") or item.get("Package Weight (kg)") or item.get("weight", 0.0))
+
+            # Fetch weight field
+            raw_weight = item.get("package_weight")
+            if raw_weight is None:
+                raw_weight = item.get("Package Weight (kg)")
+            if raw_weight is None:
+                raw_weight = item.get("weight")
+
+            # Check for NaN / null / missing weight
+            if raw_weight is None or str(raw_weight).strip().lower() in ("nan", "null", "none", "", "na"):
+                print(f"[Warning] Delivery item #{idx + 1} (ID: {raw_id}) has NaN/missing package weight. Skipping record.")
+                continue
+
+            try:
+                weight = float(raw_weight)
+            except (ValueError, TypeError):
+                print(f"[Warning] Delivery item #{idx + 1} (ID: {raw_id}) has non-numeric weight '{raw_weight}'. Skipping record.")
+                continue
+
+            import math
+            if math.isnan(weight):
+                print(f"[Warning] Delivery item #{idx + 1} (ID: {raw_id}) has NaN package weight. Skipping record.")
+                continue
+
+            d_id = int(raw_id)
+            # Check for duplicate ID
+            if d_id in seen_ids:
+                print(f"[Warning] Duplicate delivery ID #{d_id} detected at item #{idx + 1} (Area: '{area}'). Cleaning and skipping duplicate.")
+                continue
+
+            seen_ids.add(d_id)
             deliveries.append(Delivery(id=d_id, area=area, priority=prio, weight=weight))
         except (ValueError, TypeError) as err:
             print(f"[Warning] Skipping malformed delivery item #{idx}: {item} (Error: {err})")

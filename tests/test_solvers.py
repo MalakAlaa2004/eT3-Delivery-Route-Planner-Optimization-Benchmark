@@ -133,6 +133,39 @@ class TestDeliveryRoutePlanner(unittest.TestCase):
         # Later trip has Priority 2 or 3
         self.assertGreaterEqual(plan.trips[2].min_priority, 2)
 
+    def test_edge_case_duplicate_ids(self):
+        """Verify that duplicate delivery IDs are detected, cleaned, and skipped."""
+        pkgs = [
+            Delivery(id=1, area="Maadi", priority=1, weight=2.0),
+            Delivery(id=1, area="Maadi", priority=2, weight=3.0),  # Duplicate ID 1
+            Delivery(id=2, area="Maadi", priority=1, weight=4.0)
+        ]
+        solver = GreedySolver()
+        plan = solver.solve(pkgs)
+
+        self.assertEqual(len(plan.trips), 1)
+        self.assertEqual(len(plan.trips[0].deliveries), 2)
+        assigned_ids = [d.id for d in plan.trips[0].deliveries]
+        self.assertEqual(set(assigned_ids), {1, 2})
+        # Duplicate is captured in unassigned
+        self.assertEqual(len(plan.unassigned), 1)
+        self.assertIn("Duplicate delivery ID", plan.unassigned[0][1])
+
+    def test_edge_case_nan_weight(self):
+        """Verify that packages with NaN or invalid weights are flagged and rejected."""
+        import math
+        nan_pkg = Delivery(id=99, area="Dokki", priority=1, weight=float("nan"))
+        valid_pkg = Delivery(id=100, area="Dokki", priority=1, weight=3.5)
+
+        solver = GreedySolver()
+        plan = solver.solve([nan_pkg, valid_pkg])
+
+        self.assertEqual(len(plan.trips), 1)
+        self.assertEqual(plan.trips[0].deliveries[0].id, 100)
+        self.assertEqual(len(plan.unassigned), 1)
+        self.assertEqual(plan.unassigned[0][0].id, 99)
+        self.assertIn("NaN", plan.unassigned[0][1])
+
 
 if __name__ == "__main__":
     unittest.main()

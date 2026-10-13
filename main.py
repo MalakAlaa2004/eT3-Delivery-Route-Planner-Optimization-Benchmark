@@ -76,7 +76,7 @@ def export_plan_to_json(plan, output_filepath: str):
                 "id": d.id,
                 "area": d.area,
                 "priority": d.priority,
-                "weight_kg": d.weight,
+                "weight_kg": None if (hasattr(d, "weight") and (isinstance(d.weight, float) and (d.weight != d.weight))) else d.weight,
                 "reason": reason
             }
             for d, reason in plan.unassigned
