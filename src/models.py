@@ -7,6 +7,23 @@ from typing import List, Set, Tuple, Optional
 import math
 
 
+def normalize_area(area: str) -> str:
+    """Canonicalizes area names (e.g. 'maadi', 'mAADI', '  Maadi  ' -> 'Maadi')."""
+    if not area:
+        return ""
+    cleaned = " ".join(str(area).strip().split())
+    canon_map = {
+        "maadi": "Maadi",
+        "nasr city": "Nasr City",
+        "zamalek": "Zamalek",
+        "heliopolis": "Heliopolis",
+        "dokki": "Dokki",
+        "new cairo": "New Cairo",
+        "6th of october": "6th of October"
+    }
+    return canon_map.get(cleaned.lower(), cleaned.title())
+
+
 @dataclass
 class Delivery:
     """Represents a single package delivery request."""
@@ -18,7 +35,7 @@ class Delivery:
     def __post_init__(self):
         # Enforce clean data types
         self.id = int(self.id)
-        self.area = str(self.area).strip()
+        self.area = normalize_area(self.area)
         self.priority = int(self.priority)
         try:
             val = float(self.weight)
@@ -39,7 +56,7 @@ class Delivery:
         if self.weight <= 0:
             return False, f"Package weight must be positive, got {self.weight} kg"
         if self.priority <= 0:
-            return False, f"Priority must be a positive integer, got {self.priority}"
+            return False, f"Priority must be a positive integer (>= 1), got {self.priority}"
         if not self.area:
             return False, "Delivery area must not be empty"
         return True, None

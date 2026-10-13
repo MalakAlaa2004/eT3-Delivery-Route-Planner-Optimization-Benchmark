@@ -79,6 +79,10 @@ def load_deliveries_from_csv(filepath: str) -> List[Delivery]:
                     continue
 
                 prio = int(raw_prio)
+                if prio <= 0:
+                    print(f"[Warning] Delivery ID {raw_id} (row {row_num}) has invalid priority {prio} (Priority must be >= 1). Skipping record.")
+                    continue
+
                 seen_ids.add(d_id)
                 deliveries.append(Delivery(id=d_id, area=raw_area, priority=prio, weight=weight))
             except (ValueError, IndexError) as err:
@@ -143,6 +147,10 @@ def load_deliveries_from_json(filepath: str) -> List[Delivery]:
             # Check for duplicate ID
             if d_id in seen_ids:
                 print(f"[Warning] Duplicate delivery ID #{d_id} detected at item #{idx + 1} (Area: '{area}'). Cleaning and skipping duplicate.")
+                continue
+
+            if prio <= 0:
+                print(f"[Warning] Delivery item #{idx + 1} (ID: {raw_id}) has invalid priority {prio} (Priority must be >= 1). Skipping record.")
                 continue
 
             seen_ids.add(d_id)

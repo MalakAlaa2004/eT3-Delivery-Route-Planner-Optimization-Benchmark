@@ -134,6 +134,21 @@ function resizeCanvas() {
 
 window.addEventListener("resize", resizeCanvas);
 
+function normalizeArea(area) {
+  if (!area) return "";
+  const cleaned = area.toString().trim().replace(/\s+/g, " ");
+  const canonMap = {
+    "maadi": "Maadi",
+    "nasr city": "Nasr City",
+    "zamalek": "Zamalek",
+    "heliopolis": "Heliopolis",
+    "dokki": "Dokki",
+    "new cairo": "New Cairo",
+    "6th of october": "6th of October"
+  };
+  return canonMap[cleaned.toLowerCase()] || (cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase());
+}
+
 // Client-Side Deterministic Greedy Solver
 function solveGreedy(deliveries, maxCapacity = 10.0) {
   const startTime = performance.now();
@@ -142,7 +157,10 @@ function solveGreedy(deliveries, maxCapacity = 10.0) {
 
   const seenIds = new Set();
   for (const d of deliveries) {
-    if (d.weight === null || d.weight === undefined || isNaN(d.weight)) {
+    d.area = normalizeArea(d.area);
+    if (d.priority <= 0) {
+      unassigned.push({ delivery: d, reason: `Priority must be >= 1 (got ${d.priority})` });
+    } else if (d.weight === null || d.weight === undefined || isNaN(d.weight)) {
       unassigned.push({ delivery: d, reason: `Package weight is NaN (Not a Number) or missing` });
     } else if (seenIds.has(d.id)) {
       unassigned.push({ delivery: d, reason: `Duplicate delivery ID #${d.id} cleaned and skipped` });
@@ -216,7 +234,10 @@ function solveSimulatedAnnealing(deliveries, maxCapacity = 10.0) {
   const unassigned = [];
   const seenIds = new Set();
   for (const d of deliveries) {
-    if (d.weight === null || d.weight === undefined || isNaN(d.weight)) {
+    d.area = normalizeArea(d.area);
+    if (d.priority <= 0) {
+      unassigned.push({ delivery: d, reason: `Priority must be >= 1 (got ${d.priority})` });
+    } else if (d.weight === null || d.weight === undefined || isNaN(d.weight)) {
       unassigned.push({ delivery: d, reason: `Package weight is NaN (Not a Number) or missing` });
     } else if (seenIds.has(d.id)) {
       unassigned.push({ delivery: d, reason: `Duplicate delivery ID #${d.id} cleaned and skipped` });

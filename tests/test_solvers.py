@@ -151,6 +151,38 @@ class TestDeliveryRoutePlanner(unittest.TestCase):
         self.assertEqual(len(plan.unassigned), 1)
         self.assertIn("Duplicate delivery ID", plan.unassigned[0][1])
 
+    def test_edge_case_priority_zero(self):
+        """Verify that packages with priority <= 0 are rejected with an explicit warning/reason."""
+        prio_zero_pkg = Delivery(id=112, area="Maadi", priority=0, weight=3.0)
+        valid_pkg = Delivery(id=113, area="Maadi", priority=2, weight=2.0)
+
+        solver = GreedySolver()
+        plan = solver.solve([prio_zero_pkg, valid_pkg])
+
+        self.assertEqual(len(plan.trips), 1)
+        self.assertEqual(plan.trips[0].deliveries[0].id, 113)
+        self.assertEqual(len(plan.unassigned), 1)
+        self.assertEqual(plan.unassigned[0][0].id, 112)
+        self.assertIn("Priority must be a positive integer", plan.unassigned[0][1])
+
+    def test_case_insensitive_area_normalization(self):
+        """Verify that casing differences like 'mAADI' and 'maadi' are mapped to 'Maadi' and grouped together."""
+        p1 = Delivery(id=1, area="mAADI", priority=2, weight=2.0)
+        p2 = Delivery(id=2, area="maadi", priority=2, weight=2.5)
+        p3 = Delivery(id=3, area="Maadi", priority=2, weight=3.0)
+
+        self.assertEqual(p1.area, "Maadi")
+        self.assertEqual(p2.area, "Maadi")
+        self.assertEqual(p3.area, "Maadi")
+
+        solver = GreedySolver()
+        plan = solver.solve([p1, p2, p3])
+
+        # All 3 should be grouped into 1 trip because total weight = 7.5 kg <= 10 kg, and they share the same normalized area
+        self.assertEqual(len(plan.trips), 1)
+        self.assertEqual(len(plan.trips[0].deliveries), 3)
+        self.assertEqual(plan.trips[0].areas, {"Maadi"})
+
     def test_edge_case_nan_weight(self):
         """Verify that packages with NaN or invalid weights are flagged and rejected."""
         import math

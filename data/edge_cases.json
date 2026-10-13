@@ -64,5 +64,23 @@
     "area": "Maadi",
     "priority": 2,
     "package_weight": "NaN"
+  },
+  {
+    "id": 112,
+    "area": "Maadi",
+    "priority": 0,
+    "package_weight": 3.0
+  },
+  {
+    "id": 113,
+    "area": "mAADI",
+    "priority": 2,
+    "package_weight": 2.0
+  },
+  {
+    "id": 114,
+    "area": "maadi",
+    "priority": 2,
+    "package_weight": 2.5
   }
 ]
